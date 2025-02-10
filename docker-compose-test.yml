@@ -1,0 +1,37 @@
+services:
+  test-back:
+    build:
+      dockerfile: Dockerfile-test
+    container_name: test-back
+    environment:
+      - TZ=Asia/Yekaterinburg
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@test-db:5432/test
+    volumes:
+      - ./app/db/migrations/versions:/app/app/db/migrations/versions
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8000:8000
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14.8-alpine3.18
+    container_name: test-db
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5438:5432
+
+volumes:
+  postgres-data:
